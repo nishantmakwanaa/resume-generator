@@ -6,23 +6,23 @@ import { GoogleAuthButton, GithubAuthButton } from '@/components/ui/AuthButtons'
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 
-const Login = () => {
+const Signup = () => {
   const { toast } = useToast();
 
-  const handleGoogleLogin = () => {
+  const handleGoogleSignup = () => {
     // In a real app, this would connect to Google OAuth
     toast({
-      title: "Login with Google",
+      title: "Sign up with Google",
       description: "This would connect to Google OAuth in a production app.",
     });
     // Redirect to dashboard for demo purposes
     window.location.href = '/dashboard';
   };
 
-  const handleGithubLogin = () => {
+  const handleGithubSignup = () => {
     // In a real app, this would connect to GitHub OAuth
     toast({
-      title: "Login with GitHub",
+      title: "Sign up with GitHub",
       description: "This would connect to GitHub OAuth in a production app.",
     });
     // Redirect to dashboard for demo purposes
@@ -34,15 +34,15 @@ const Login = () => {
       <div className="w-full max-w-md">
         <Card className="border-border shadow-lg">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+            <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
             <CardDescription>
-              Sign in to access your resume builder account
+              Sign up to start building your professional resume
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <GoogleAuthButton onClick={handleGoogleLogin} />
-              <GithubAuthButton onClick={handleGithubLogin} />
+              <GoogleAuthButton onClick={handleGoogleSignup} isSignUp />
+              <GithubAuthButton onClick={handleGithubSignup} isSignUp />
             </div>
             
             <div className="relative">
@@ -71,16 +71,11 @@ const Login = () => {
               Continue in Demo Mode
             </Button>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-2">
+          <CardFooter className="flex justify-center">
             <div className="text-center text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Link to="/signup" className="underline underline-offset-4 hover:text-primary">
-                Sign up
-              </Link>
-            </div>
-            <div className="text-center text-sm text-muted-foreground">
-              <Link to="/forgot-password" className="underline underline-offset-4 hover:text-primary">
-                Forgot your password?
+              Already have an account?{" "}
+              <Link to="/login" className="underline underline-offset-4 hover:text-primary">
+                Sign in
               </Link>
             </div>
           </CardFooter>
@@ -90,4 +85,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;
