@@ -1,7 +1,8 @@
 
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase, signIn, signOut } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import { signIn, signOut } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 
