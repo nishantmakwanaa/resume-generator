@@ -5,81 +5,106 @@ import { Plus, File, Edit, Trash2, Copy, Eye, MoreHorizontal } from 'lucide-reac
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
-
-// Mock resume data
-interface Resume {
-  id: string;
-  title: string;
-  lastModified: string;
-  thumbnail: string;
-}
+import { useUserResumes, useCreateResume, useDeleteResume } from '@/hooks/use-resume';
+import { format } from 'date-fns';
+import { useAuth } from '@/hooks/use-auth';
 
 const Dashboard = () => {
-  const [resumes, setResumes] = useState<Resume[]>([
-    {
-      id: '1',
-      title: 'Software Engineer Resume',
-      lastModified: '2023-10-15',
-      thumbnail: '/placeholder.svg',
-    },
-    {
-      id: '2',
-      title: 'Product Manager Resume',
-      lastModified: '2023-09-22',
-      thumbnail: '/placeholder.svg',
-    },
-  ]);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: resumes = [], isLoading, refetch } = useUserResumes();
+  const createResumeMutation = useCreateResume();
+  const deleteResumeMutation = useDeleteResume();
 
   // Add a new resume
-  const addResume = () => {
-    const newResume: Resume = {
-      id: `resume-${Date.now()}`,
-      title: 'New Resume',
-      lastModified: new Date().toISOString().split('T')[0],
-      thumbnail: '/placeholder.svg',
-    };
-    
-    setResumes([...resumes, newResume]);
-    toast({
-      title: "New resume created!",
-      description: "Your new resume has been added to your dashboard.",
-    });
-  };
-
-  // Delete a resume
-  const deleteResume = (id: string) => {
-    if (confirm('Are you sure you want to delete this resume?')) {
-      setResumes(resumes.filter(resume => resume.id !== id));
+  const addResume = async () => {
+    if (!user) {
       toast({
-        title: "Resume deleted",
-        description: "Your resume has been permanently removed.",
+        title: "Authentication required",
+        description: "Please log in to create a resume.",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return;
+    }
+    
+    try {
+      const newResume = await createResumeMutation.mutateAsync("New Resume");
+      if (newResume) {
+        toast({
+          title: "New resume created!",
+          description: "Your new resume has been added to your dashboard.",
+        });
+        navigate(`/editor/${newResume.id}`);
+      }
+    } catch (error) {
+      console.error("Error creating resume:", error);
+      toast({
+        title: "Error creating resume",
+        description: "There was a problem creating your resume. Please try again.",
+        variant: "destructive"
       });
     }
   };
 
-  // Duplicate a resume
-  const duplicateResume = (resume: Resume) => {
-    const newResume: Resume = {
-      id: `resume-${Date.now()}`,
-      title: `${resume.title} (Copy)`,
-      lastModified: new Date().toISOString().split('T')[0],
-      thumbnail: resume.thumbnail,
-    };
-    
-    setResumes([...resumes, newResume]);
+  // Delete a resume
+  const deleteResume = async (id: string) => {
+    if (confirm('Are you sure you want to delete this resume?')) {
+      try {
+        await deleteResumeMutation.mutateAsync(id);
+        toast({
+          title: "Resume deleted",
+          description: "Your resume has been permanently removed.",
+        });
+      } catch (error) {
+        console.error("Error deleting resume:", error);
+        toast({
+          title: "Error deleting resume",
+          description: "There was a problem deleting your resume. Please try again.",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  // Duplicate a resume (this would require a backend function)
+  const duplicateResume = (resumeId: string, title: string) => {
+    // This would be implemented in the future
     toast({
-      title: "Resume duplicated!",
-      description: "A copy of your resume has been created.",
+      title: "Feature coming soon",
+      description: "Resume duplication will be available in a future update.",
     });
   };
 
   // Format date to be more readable
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    try {
+      return format(new Date(dateString), 'MMM d, yyyy');
+    } catch (error) {
+      return dateString;
+    }
   };
+
+  if (!user) {
+    return (
+      <div className="container mx-auto p-6 max-w-6xl">
+        <div className="text-center p-12 border border-dashed rounded-lg">
+          <File className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
+          <h3 className="text-lg font-medium mb-1">Sign in to view your resumes</h3>
+          <p className="text-muted-foreground mb-4">
+            You need to be logged in to create and manage resumes
+          </p>
+          <Link to="/login">
+            <Button>
+              Sign In
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -90,7 +115,7 @@ const Dashboard = () => {
             Manage your resumes and create new ones
           </p>
         </div>
-        <Button onClick={addResume}>
+        <Button onClick={addResume} disabled={createResumeMutation.isPending}>
           <Plus className="h-4 w-4 mr-2" />
           New Resume
         </Button>
@@ -102,14 +127,18 @@ const Dashboard = () => {
           <TabsTrigger value="recent">Recently Modified</TabsTrigger>
         </TabsList>
         <TabsContent value="all" className="mt-6">
-          {resumes.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center p-12">
+              <p>Loading your resumes...</p>
+            </div>
+          ) : resumes.length === 0 ? (
             <div className="text-center p-12 border border-dashed rounded-lg">
               <File className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
               <h3 className="text-lg font-medium mb-1">No resumes yet</h3>
               <p className="text-muted-foreground mb-4">
                 Create your first resume to get started
               </p>
-              <Button onClick={addResume}>
+              <Button onClick={addResume} disabled={createResumeMutation.isPending}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Resume
               </Button>
@@ -120,7 +149,7 @@ const Dashboard = () => {
                 <Card key={resume.id} className="group overflow-hidden">
                   <div className="relative">
                     <img 
-                      src={resume.thumbnail} 
+                      src="/placeholder.svg" 
                       alt={resume.title}
                       className="w-full h-40 object-cover"
                     />
@@ -149,7 +178,7 @@ const Dashboard = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => duplicateResume(resume)}>
+                          <DropdownMenuItem onClick={() => duplicateResume(resume.id, resume.title)}>
                             <Copy className="h-4 w-4 mr-2" />
                             Duplicate
                           </DropdownMenuItem>
@@ -157,6 +186,7 @@ const Dashboard = () => {
                           <DropdownMenuItem 
                             onClick={() => deleteResume(resume.id)}
                             className="text-destructive focus:text-destructive"
+                            disabled={deleteResumeMutation.isPending}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete
@@ -165,7 +195,7 @@ const Dashboard = () => {
                       </DropdownMenu>
                     </div>
                     <CardDescription>
-                      Last modified: {formatDate(resume.lastModified)}
+                      Last modified: {formatDate(resume.updated_at)}
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-2">
@@ -183,14 +213,14 @@ const Dashboard = () => {
         </TabsContent>
         <TabsContent value="recent" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {resumes
-              .sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime())
+            {!isLoading && resumes
+              .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
               .slice(0, 3)
               .map((resume) => (
                 <Card key={resume.id} className="group overflow-hidden">
                   <div className="relative">
                     <img 
-                      src={resume.thumbnail} 
+                      src="/placeholder.svg" 
                       alt={resume.title}
                       className="w-full h-40 object-cover"
                     />
@@ -219,7 +249,7 @@ const Dashboard = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => duplicateResume(resume)}>
+                          <DropdownMenuItem onClick={() => duplicateResume(resume.id, resume.title)}>
                             <Copy className="h-4 w-4 mr-2" />
                             Duplicate
                           </DropdownMenuItem>
@@ -227,6 +257,7 @@ const Dashboard = () => {
                           <DropdownMenuItem 
                             onClick={() => deleteResume(resume.id)}
                             className="text-destructive focus:text-destructive"
+                            disabled={deleteResumeMutation.isPending}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete
@@ -235,7 +266,7 @@ const Dashboard = () => {
                       </DropdownMenu>
                     </div>
                     <CardDescription>
-                      Last modified: {formatDate(resume.lastModified)}
+                      Last modified: {formatDate(resume.updated_at)}
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-2">
