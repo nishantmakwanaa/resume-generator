@@ -1,33 +1,23 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import AuthButtons from '@/components/ui/AuthButtons';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
 const Login = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
-  const handleGoogleLogin = () => {
-    // In a real app, this would connect to Google OAuth
-    toast({
-      title: "Login with Google",
-      description: "This would connect to Google OAuth in a production app.",
-    });
-    // Redirect to dashboard for demo purposes
-    window.location.href = '/dashboard';
-  };
-
-  const handleGithubLogin = () => {
-    // In a real app, this would connect to GitHub OAuth
-    toast({
-      title: "Login with GitHub",
-      description: "This would connect to GitHub OAuth in a production app.",
-    });
-    // Redirect to dashboard for demo purposes
-    window.location.href = '/dashboard';
-  };
+  useEffect(() => {
+    // If user is already logged in, redirect to dashboard
+    if (user && !loading) {
+      navigate('/dashboard');
+    }
+  }, [user, loading, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted p-4">
@@ -62,7 +52,7 @@ const Login = () => {
                   title: "Demo mode activated",
                   description: "You're now using the app in demo mode.",
                 });
-                window.location.href = '/dashboard';
+                navigate('/dashboard');
               }}
             >
               Continue in Demo Mode

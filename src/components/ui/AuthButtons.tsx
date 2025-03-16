@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Github, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/use-auth';
 
 interface AuthButtonsProps {
   onSuccess?: () => void;
@@ -16,38 +17,28 @@ const AuthButtons: React.FC<AuthButtonsProps> = ({
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signInWithGoogle, signInWithGithub } = useAuth();
   
-  // Mock authentication functions - would connect to real auth providers in production
-  const handleGoogleLogin = () => {
-    // Simulate successful login
-    setTimeout(() => {
-      toast({
-        title: "Logged in with Google",
-        description: "You have successfully signed in with Google.",
-      });
-      
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithGoogle();
       if (onSuccess) {
         onSuccess();
-      } else {
-        navigate('/dashboard');
       }
-    }, 1000);
+    } catch (error) {
+      console.error('Google login error:', error);
+    }
   };
   
-  const handleGithubLogin = () => {
-    // Simulate successful login
-    setTimeout(() => {
-      toast({
-        title: "Logged in with GitHub",
-        description: "You have successfully signed in with GitHub.",
-      });
-      
+  const handleGithubLogin = async () => {
+    try {
+      await signInWithGithub();
       if (onSuccess) {
         onSuccess();
-      } else {
-        navigate('/dashboard');
       }
-    }, 1000);
+    } catch (error) {
+      console.error('GitHub login error:', error);
+    }
   };
 
   return (
