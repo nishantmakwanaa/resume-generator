@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GoogleAuthButton, GithubAuthButton } from '@/components/ui/AuthButtons';
+import AuthButtons from '@/components/ui/AuthButtons';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -40,10 +40,7 @@ const Login = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <GoogleAuthButton onClick={handleGoogleLogin} />
-              <GithubAuthButton onClick={handleGithubLogin} />
-            </div>
+            <AuthButtons showEmail={false} />
             
             <div className="relative">
               <div className="absolute inset-0 flex items-center">

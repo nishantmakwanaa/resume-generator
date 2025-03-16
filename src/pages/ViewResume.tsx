@@ -7,6 +7,64 @@ import { toast } from '@/components/ui/use-toast';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
+interface HeaderContent {
+  fullName: string;
+  title: string;
+  email: string;
+  phone: string;
+  website: string;
+  location: string;
+  summary: string;
+}
+
+interface ExperienceItem {
+  id: string;
+  company: string;
+  position: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+}
+
+interface EducationItem {
+  id: string;
+  institution: string;
+  degree: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+}
+
+interface SkillCategory {
+  id: string;
+  name: string;
+  skills: string[];
+}
+
+interface ProjectItem {
+  id: string;
+  title: string;
+  link?: string;
+  duration: string;
+  description: string;
+}
+
+interface AchievementItem {
+  id: string;
+  title: string;
+  issuer: string;
+  date: string;
+  description: string;
+}
+
+interface ResumeSection {
+  type: 'header' | 'experience' | 'education' | 'skills' | 'projects' | 'achievements';
+  title?: string;
+  content: HeaderContent | ExperienceItem[] | EducationItem[] | { categories: SkillCategory[] } | ProjectItem[] | AchievementItem[];
+}
+
 const ViewResume = () => {
   const { id } = useParams<{ id: string }>();
   const resumeRef = React.useRef<HTMLDivElement>(null);
@@ -164,7 +222,7 @@ const ViewResume = () => {
           {resumeData.sections.map((section, index) => {
             switch (section.type) {
               case 'header':
-                const header = section.content;
+                const header = section.content as HeaderContent;
                 return (
                   <div key={index} className="mb-6">
                     <h1 className="text-2xl font-bold mb-1">{header.fullName}</h1>
@@ -198,7 +256,7 @@ const ViewResume = () => {
                 return (
                   <div key={index} className="mb-6">
                     <h2 className="text-lg font-bold border-b border-gray-300 pb-1 mb-3">{section.title}</h2>
-                    {section.content.map((exp: any, i: number) => (
+                    {(section.content as ExperienceItem[]).map((exp, i) => (
                       <div key={i} className="mb-3">
                         <div className="flex justify-between">
                           <div>
@@ -221,7 +279,7 @@ const ViewResume = () => {
                 return (
                   <div key={index} className="mb-6">
                     <h2 className="text-lg font-bold border-b border-gray-300 pb-1 mb-3">{section.title}</h2>
-                    {section.content.map((edu: any, i: number) => (
+                    {(section.content as EducationItem[]).map((edu, i) => (
                       <div key={i} className="mb-3">
                         <div className="flex justify-between">
                           <div>
@@ -239,10 +297,11 @@ const ViewResume = () => {
                   </div>
                 );
               case 'skills':
+                const skillsData = section.content as { categories: SkillCategory[] };
                 return (
                   <div key={index} className="mb-6">
                     <h2 className="text-lg font-bold border-b border-gray-300 pb-1 mb-3">{section.title}</h2>
-                    {section.content.categories.map((category: any, i: number) => (
+                    {skillsData.categories.map((category, i) => (
                       <div key={i} className="mb-3">
                         <h3 className="font-medium text-sm">{category.name}</h3>
                         <p className="text-sm">{category.skills.join(', ')}</p>

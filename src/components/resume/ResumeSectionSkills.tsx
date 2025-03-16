@@ -13,14 +13,17 @@ export interface SkillCategory {
 }
 
 interface ResumeSectionSkillsProps {
-  categories: SkillCategory[];
-  onChange: (categories: SkillCategory[]) => void;
+  data: {
+    categories: SkillCategory[];
+  };
+  onChange: (content: any) => void;
 }
 
 const ResumeSectionSkills: React.FC<ResumeSectionSkillsProps> = ({
-  categories,
+  data,
   onChange,
 }) => {
+  const categories = data.categories;
   const [newSkill, setNewSkill] = React.useState<string>('');
   const [activeCategory, setActiveCategory] = React.useState<string | null>(
     categories.length > 0 ? categories[0].id : null
@@ -33,7 +36,7 @@ const ResumeSectionSkills: React.FC<ResumeSectionSkillsProps> = ({
       name: 'New Category',
       skills: [],
     };
-    onChange([...categories, newCategory]);
+    onChange({ categories: [...categories, newCategory] });
     setActiveCategory(newCategory.id);
   };
 
@@ -42,12 +45,12 @@ const ResumeSectionSkills: React.FC<ResumeSectionSkillsProps> = ({
     const updatedCategories = categories.map((category) =>
       category.id === id ? { ...category, name } : category
     );
-    onChange(updatedCategories);
+    onChange({ categories: updatedCategories });
   };
 
   // Remove a category
   const removeCategory = (id: string) => {
-    onChange(categories.filter((category) => category.id !== id));
+    onChange({ categories: categories.filter((category) => category.id !== id) });
     if (activeCategory === id) {
       setActiveCategory(categories.length > 1 ? categories[0].id : null);
     }
@@ -62,7 +65,7 @@ const ResumeSectionSkills: React.FC<ResumeSectionSkillsProps> = ({
         ? { ...category, skills: [...category.skills, skill.trim()] } 
         : category
     );
-    onChange(updatedCategories);
+    onChange({ categories: updatedCategories });
     setNewSkill('');
   };
 
@@ -76,7 +79,7 @@ const ResumeSectionSkills: React.FC<ResumeSectionSkillsProps> = ({
           } 
         : category
     );
-    onChange(updatedCategories);
+    onChange({ categories: updatedCategories });
   };
 
   // Get the active category
