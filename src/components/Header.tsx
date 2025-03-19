@@ -3,29 +3,27 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { LogIn, LogOut, Menu } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
-interface HeaderProps {
-  isLoggedIn?: boolean;
-  userName?: string;
-}
-
-const Header: React.FC<HeaderProps> = ({ 
-  isLoggedIn = false, 
-  userName = '' 
-}) => {
+const Header: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const { user, signOutUser } = useAuth();
   
-  // Mock logout function - would connect to auth provider in real app
-  const handleLogout = () => {
-    toast({
-      title: "Logged out successfully",
-      description: "You have been logged out of your account.",
-    });
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await signOutUser();
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging out. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -62,7 +60,7 @@ const Header: React.FC<HeaderProps> = ({
           >
             Templates
           </Link>
-          {isLoggedIn && (
+          {user && (
             <Link 
               to="/dashboard" 
               className={`text-sm font-medium transition-colors hover:text-primary ${
@@ -73,9 +71,9 @@ const Header: React.FC<HeaderProps> = ({
             </Link>
           )}
           
-          {isLoggedIn ? (
+          {user ? (
             <div className="flex items-center gap-4">
-              <span className="text-sm font-medium">{userName}</span>
+              <span className="text-sm font-medium">{user.email}</span>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
@@ -112,7 +110,7 @@ const Header: React.FC<HeaderProps> = ({
             >
               Templates
             </Link>
-            {isLoggedIn && (
+            {user && (
               <Link 
                 to="/dashboard" 
                 className={`text-sm font-medium transition-colors hover:text-primary ${
@@ -124,9 +122,9 @@ const Header: React.FC<HeaderProps> = ({
               </Link>
             )}
             
-            {isLoggedIn ? (
+            {user ? (
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{userName}</span>
+                <span className="text-sm font-medium">{user.email}</span>
                 <Button variant="ghost" size="sm" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout

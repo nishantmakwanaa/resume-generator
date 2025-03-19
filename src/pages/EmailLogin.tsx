@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/components/ui/use-toast';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 
 const EmailLogin = () => {
   const [email, setEmail] = useState('');
@@ -36,16 +37,35 @@ const EmailLogin = () => {
       return;
     }
 
+    if (password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
     
     try {
       if (isSignUp) {
         await signUpWithEmail(email, password);
+        toast({
+          title: "Account created",
+          description: "Check your email to confirm your account",
+        });
       } else {
         await signInWithEmail(email, password);
+        navigate('/dashboard');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Authentication error:", error);
+      toast({
+        title: isSignUp ? "Sign up failed" : "Sign in failed",
+        description: error.message || "An error occurred during authentication",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -76,16 +96,28 @@ const EmailLogin = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  {!isSignUp && (
+                    <Link 
+                      to="/forgot-password" 
+                      className="text-xs text-muted-foreground underline underline-offset-4 hover:text-primary"
+                    >
+                      Forgot password?
+                    </Link>
+                  )}
+                </div>
                 <Input 
                   id="password" 
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <Button 
@@ -93,10 +125,11 @@ const EmailLogin = () => {
                 className="w-full" 
                 disabled={isLoading}
               >
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isLoading 
                   ? 'Processing...' 
                   : isSignUp 
-                    ? 'Sign Up' 
+                    ? 'Create Account' 
                     : 'Sign In'}
               </Button>
             </form>
@@ -110,15 +143,17 @@ const EmailLogin = () => {
                 variant="link" 
                 className="p-0 h-auto" 
                 onClick={() => setIsSignUp(!isSignUp)}
+                disabled={isLoading}
               >
-                {isSignUp ? 'Sign in' : 'Sign up'}
+                {isSignUp ? 'Sign in' : 'Create account'}
               </Button>
             </div>
             <div className="text-center">
               <Link 
                 to="/login" 
-                className="text-sm text-muted-foreground underline underline-offset-4 hover:text-primary"
+                className="flex items-center justify-center text-sm text-muted-foreground underline-offset-4 hover:text-primary"
               >
+                <ArrowLeft className="h-4 w-4 mr-1" />
                 Back to all sign in options
               </Link>
             </div>

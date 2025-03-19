@@ -6,6 +6,7 @@ import AuthButtons from '@/components/ui/AuthButtons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { Mail } from 'lucide-react';
 
 const Login = () => {
   const { toast } = useToast();
@@ -30,7 +31,7 @@ const Login = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <AuthButtons showEmail={false} />
+            <AuthButtons />
             
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -38,7 +39,27 @@ const Login = () => {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-card px-2 text-muted-foreground">
-                  Or continue with
+                  Or
+                </span>
+              </div>
+            </div>
+
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => navigate('/login/email')}
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              Continue with Email
+            </Button>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                  No account?
                 </span>
               </div>
             </div>
@@ -63,11 +84,6 @@ const Login = () => {
               Don't have an account?{" "}
               <Link to="/signup" className="underline underline-offset-4 hover:text-primary">
                 Sign up
-              </Link>
-            </div>
-            <div className="text-center text-sm text-muted-foreground">
-              <Link to="/forgot-password" className="underline underline-offset-4 hover:text-primary">
-                Forgot your password?
               </Link>
             </div>
           </CardFooter>

@@ -2,7 +2,6 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { signIn, signOut } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -48,41 +47,57 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signInWithGoogle = async () => {
     try {
-      const { error } = await signIn('google');
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      
       if (error) {
         toast({
           title: "Sign in failed",
           description: error.message,
           variant: "destructive"
         });
+        throw error;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Google sign in error:", error);
       toast({
         title: "Sign in failed",
         description: "Could not sign in with Google. This provider may not be enabled.",
         variant: "destructive"
       });
+      throw error;
     }
   };
 
   const signInWithGithub = async () => {
     try {
-      const { error } = await signIn('github');
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      
       if (error) {
         toast({
           title: "Sign in failed",
           description: error.message,
           variant: "destructive"
         });
+        throw error;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("GitHub sign in error:", error);
       toast({
         title: "Sign in failed",
         description: "Could not sign in with GitHub. This provider may not be enabled.",
         variant: "destructive"
       });
+      throw error;
     }
   };
 
@@ -101,13 +116,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
         throw error;
       } else {
-        navigate('/dashboard');
         toast({
           title: "Signed in",
           description: "You have been successfully signed in.",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Email sign in error:", error);
       throw error;
     }
@@ -118,6 +132,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login`
+        }
       });
       
       if (error) {
@@ -133,7 +150,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           description: "Please check your email to confirm your account.",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Email sign up error:", error);
       throw error;
     }
@@ -141,19 +158,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOutUser = async () => {
     try {
-      await signOut();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+      
       navigate('/login');
       toast({
         title: "Signed out",
         description: "You have been successfully signed out.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sign out error:", error);
       toast({
         title: "Sign out failed",
-        description: "Could not sign out.",
+        description: error.message || "Could not sign out.",
         variant: "destructive"
       });
+      throw error;
     }
   };
 
