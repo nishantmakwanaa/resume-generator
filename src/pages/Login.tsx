@@ -69,6 +69,8 @@ const Login = () => {
               variant="outline" 
               className="w-full"
               onClick={() => {
+                // Store demo mode in localStorage
+                localStorage.setItem('demoMode', 'true');
                 toast({
                   title: "Demo mode activated",
                   description: "You're now using the app in demo mode.",
